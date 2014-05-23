@@ -15,8 +15,26 @@ EXCLUDE_FILES_GLOB="*~"
 LAST_OPENEND_VIEW_ID=None
 GOTO_THIS_LINE=1
 
+MAX_GOTO_STACK_SIZE = 20
+GOTO_STACK = []
+
 def is_shell_script_syntax_file(syntaxFile):
 	return re.search("ShellScript", syntaxFile) != None
+
+
+def open_hit (baseView, pickedFile, lineNumber, doAddToStack=True):
+	global LAST_OPENEND_VIEW_ID, GOTO_THIS_LINE, GOTO_STACK, MAX_GOTO_STACK_SIZE
+
+	if doAddToStack:
+		currentlineNr=baseView.rowcol(baseView.sel()[0].begin())[0] + 1
+		GOTO_STACK.append([baseView.file_name(), currentlineNr])
+		if len(GOTO_STACK) > MAX_GOTO_STACK_SIZE:
+			GOTO_STACK.pop(0)
+	
+	GOTO_THIS_LINE = lineNumber
+	view = baseView.window().open_file(pickedFile)
+	LAST_OPENEND_VIEW_ID = view.id()
+	view.run_command("goto_line", {"line": GOTO_THIS_LINE} )
 
 
 class ShellScriptHelpersCommand(sublime_plugin.TextCommand):
@@ -37,16 +55,15 @@ class ShellScriptHelpersCommand(sublime_plugin.TextCommand):
 		self.foundHits = []
 		if len(keyword) > 0:
 			self.foundHits = self.find_implementation_of_function(keyword)
-			self.view.window().show_quick_panel([I[0] for I in self.foundHits], self.on_done)
+			if len(self.foundHits) == 1:
+				open_hit(self.view, self.foundHits[0][0], self.foundHits[0][1])
+			elif len(self.foundHits) > 1:
+				self.view.window().show_quick_panel([I[0] for I in self.foundHits], self.on_done)
 
 	def on_done(self, picked):
-		global LAST_OPENEND_VIEW_ID, GOTO_THIS_LINE
 		pickedFile = self.foundHits[picked][0]
 		lineNumber = self.foundHits[picked][1]
-		GOTO_THIS_LINE = lineNumber
-		view=self.view.window().open_file(pickedFile)
-		LAST_OPENEND_VIEW_ID = view.id()
-		view.run_command("goto_line", {"line": GOTO_THIS_LINE} )
+		open_hit(self.view, pickedFile, lineNumber)
 		
 
 	def is_visible(self):
@@ -55,6 +72,7 @@ class ShellScriptHelpersCommand(sublime_plugin.TextCommand):
 
 	def find_implementation_of_function_in_folder(self, funcName, folder):
 		global EXCLUDE_FILES_GLOB
+		funcName = funcName.replace('"', '\\"') # escape
 		script = 'cd "' + folder + '"; grep -rnE --exclude="' + EXCLUDE_FILES_GLOB +'" "^[ ]*function[ ]+'+ funcName +'([ ]|$)+" *'
 		proc = subprocess.Popen(['bash', '-c', script],stdout=subprocess.PIPE)
 		result = proc.stdout.read()
@@ -75,6 +93,18 @@ class ShellScriptHelpersCommand(sublime_plugin.TextCommand):
 		return finalResult
 
 
+class ShellScriptHelpersGoBackCommand(sublime_plugin.TextCommand):
+
+	def run(self, edit):
+
+		if len(GOTO_STACK) > 0:
+			last = GOTO_STACK.pop()
+			open_hit(self.view, last[0], last[1], False)
+
+	def is_visible(self):
+
+		return len(GOTO_STACK) > 0
+
 
 class ShellScriptHelpersViewEventListener(sublime_plugin.EventListener):
 
@@ -82,7 +112,6 @@ class ShellScriptHelpersViewEventListener(sublime_plugin.EventListener):
 		global LAST_OPENEND_VIEW_ID, GOTO_THIS_LINE
 
 		if view.id() == LAST_OPENEND_VIEW_ID:
-			print "Goto Line"
 			view.run_command("goto_line", {"line": GOTO_THIS_LINE} )
 			LAST_OPENEND_VIEW_ID = None
 

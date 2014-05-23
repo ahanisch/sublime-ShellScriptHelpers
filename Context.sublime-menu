@@ -1,4 +1,5 @@
 [
 	{ "caption": "-" },
-	{ "caption": "Goto Implementation ...", "command": "shell_script_helpers" }
+	{ "caption": "Goto Implementation ...", "command": "shell_script_helpers" },
+	{ "caption": "Go back", "command": "shell_script_helpers_go_back" }
 ]
