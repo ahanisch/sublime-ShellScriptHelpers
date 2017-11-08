@@ -12,4 +12,4 @@ Adds ContextMenu->Goto Implementation.
 # Installation:
 
     cd sublime package folder (see Preferences -> Browse Packages ...)
-    git clone https://github.com/ahanisch/sublime-ShellScriptHelpers.git
+    git clone https://github.com/ahanisch/sublime-shell-script-plugin
