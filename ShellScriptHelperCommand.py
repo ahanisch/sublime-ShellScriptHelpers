@@ -2,7 +2,7 @@ import sublime, sublime_plugin, subprocess, os, re
 
 #
 # SublimeText 2 Plugin for Shell Scripts
-# (C) 2014 Andreas Hanisch
+# 2014-2017 https://github.com/ahanisch/sublime-shell-script-plugin
 #
 #	a context menu entry is added if current file has shell syntax (View->Syntax->Shell Script)
 #
