@@ -40,8 +40,6 @@ def open_hit (baseView, pickedFile, lineNumber, doAddToStack=True):
 
 class ShellScriptHelpersCommand(sublime_plugin.TextCommand):
 
-	def getPluginDir(self):
-		return os.path.join(sublime.packages_path(), "ShellScriptHelpers")
 
 	def run(self, edit):
 		keyword = ""
@@ -84,7 +82,8 @@ class ShellScriptHelpersCommand(sublime_plugin.TextCommand):
 	def find_implementation_of_function(self, funcName):
 		folders = self.view.window().folders()
 		if len(folders) == 0:
-			folders = [self.getPluginDir()]
+			current_dir = os.path.dirname(self.view.file_name())
+			folders = [current_dir]
 
 		finalResult = []
 		for folder in folders:
