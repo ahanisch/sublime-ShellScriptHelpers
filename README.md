@@ -1,7 +1,7 @@
 sublime-ShellScriptHelpers
 ==========================
 
-Shell script plugin for sublime text 2
+Shell script plugin for sublime text 2 / sublime text 3.
 
 Adds ContextMenu->Goto Implementation.
 
