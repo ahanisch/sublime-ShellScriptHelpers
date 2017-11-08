@@ -12,6 +12,7 @@ import sublime, sublime_plugin, subprocess, os, re
 #
 
 EXCLUDE_FILES_GLOB="*~"
+INCLUDE_FILES_GLOB="*.sh"
 LAST_OPENEND_VIEW_ID=None
 GOTO_THIS_LINE=1
 
@@ -73,9 +74,9 @@ class ShellScriptHelpersCommand(sublime_plugin.TextCommand):
 	def find_implementation_of_function_in_folder(self, funcName, folder):
 		global EXCLUDE_FILES_GLOB
 		funcName = funcName.replace('"', '\\"') # escape
-		script = 'cd "' + folder + '"; grep -rnE --exclude="' + EXCLUDE_FILES_GLOB +'" "^[ ]*function[ ]+'+ funcName +'([ ]|$)+" *'
+		script = 'cd "' + folder + '"; grep -rnE --exclude="' + EXCLUDE_FILES_GLOB +'" --include="' + INCLUDE_FILES_GLOB + '" "^[ ]*function[ ]+'+ funcName +'([ ]|$)+" *'	
 		proc = subprocess.Popen(['bash', '-c', script],stdout=subprocess.PIPE)
-		result = proc.stdout.read()
+		result = proc.stdout.read().decode("utf-8")
 		hits = [I.split(":") for I in result.split("\n") if len(I) > 0]
 
 		return hits
